@@ -19,8 +19,15 @@ impl Config {
     }
 }
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(config.filename)?;
+pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(&config.filename)?;
+
+    let content_vector = search(&config.query, &contents);
+
+    for line in content_vector {
+        println!("The line is {}", line);
+    }
+
     Ok(())
 }
 
