@@ -1,5 +1,7 @@
+use std::env;
 use std::error::Error;
 use std::fs;
+
 #[derive(Debug, PartialEq)]
 pub struct Config {
     pub query: String,
@@ -13,9 +15,12 @@ impl Config {
         if args.len() < 3 {
             return Err("You are missing an argument");
         }
+
+        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
         Ok(Config {
             query: args[1].clone(),
             filename: args[2].clone(),
+            case_sensitive,
         })
     }
 }
@@ -23,7 +28,11 @@ impl Config {
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(&config.filename)?;
 
-    let content_vector = search(&config.query, &contents);
+    let content_vector = if config.case_sensitive {
+        search(&config.query, &contents)
+    } else {
+        case_insensitive_search(&config.query, &contents)
+    };
 
     for line in content_vector {
         println!("The line is {}", line);
@@ -106,7 +115,8 @@ Trust me.";
             second_config,
             Ok(Config {
                 query: String::from("Are you"),
-                filename: String::from("Are you nobody, too?")
+                filename: String::from("Are you nobody, too?"),
+                case_sensitive: true
             })
         )
     }
